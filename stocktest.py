@@ -34,8 +34,10 @@ def edit(existing_data):
         new_quantity = int(input(f"Enter the new quantity for {menu_to_edit}: "))
         
         print(f"Before Update:\n{existing_data}")
+
         existing_data.loc[existing_data['Menu'] == menu_to_edit, 'Price'] = new_price
         existing_data.loc[existing_data['Menu'] == menu_to_edit, 'Quantity'] = new_quantity
+        
         existing_data.to_excel("stock.xlsx", index=False)
         
         print(f"After Update:\n{existing_data}")
@@ -55,6 +57,9 @@ def take_order(existing_data, table_number):
         if choice in existing_data['Menu'].values:
             quantity = int(input(f"Enter the quantity for {choice}: "))
             order[choice] = quantity
+            
+            existing_data.loc[existing_data['Menu'] == choice, 'Quantity'] -= quantity
+            existing_data.to_excel("stock.xlsx", index=False)
         else:
             print(f"Menu '{choice}' not found in the existing data.")
     return order
@@ -69,6 +74,7 @@ def calculate_total(order, existing_data):
         
         if quantity <= quantity_available:
             total += price * quantity
+
         else:
             print(f"Error: Not enough quantity available for '{menu}'")
     return total
@@ -88,10 +94,13 @@ def run(existing_data):
         else:
             orders[table_number] = {1: {'order': order, 'total_amount': calculate_total(order, existing_data)}}
 
+    return orders
+
+def print_orders(orders):
     print("\nOrders:")
     for table, order_info in orders.items():
         for order_number, details in order_info.items():
-            print(f"Table {table} Order {order_number}: {details['order']}, Total Amount: ${details['total_amount']}")
+            print(f"Table {table} Order {order_number}:\n{details['order']}, Total Amount: ${details['total_amount']}")
 
 def select(existing_data):
     while True:
@@ -116,9 +125,11 @@ def select(existing_data):
                 else:
                     print('Please enter a number in the choice')
         elif select_number == '2':
-            run(existing_data)
+            orders = run(existing_data)
         else:
             print('Please enter a number in the choice')
+    
+    print_orders(orders)
 
 select(existing_data)
 
